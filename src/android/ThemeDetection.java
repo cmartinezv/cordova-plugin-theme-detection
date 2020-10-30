@@ -5,6 +5,9 @@ import android.os.Bundle;
 import android.os.Build;
 import android.os.Handler;
 import android.content.res.Configuration;
+
+import androidx.appcompat.app.AppCompatDelegate;
+
 import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.PluginResult;
@@ -18,7 +21,8 @@ import org.json.JSONObject;
 public class ThemeDetection extends CordovaPlugin {
   public enum Action {
     isAvailable,
-    isDarkModeEnabled
+    isDarkModeEnabled,
+    toggleDarkMode
   }
   private CallbackContext callback = null;
 
@@ -34,6 +38,9 @@ public class ThemeDetection extends CordovaPlugin {
           result = isAvailable(callbackContext); break;
       case isDarkModeEnabled:
           result = isDarkModeEnabled(callbackContext); break;
+      case toggleDarkMode:
+          boolean enabled = Boolean.parseBoolean(args.getString(0));
+          result = toggleDarkMode(enabled,callbackContext); break;
     }
     return result;
   }
@@ -69,6 +76,30 @@ public class ThemeDetection extends CordovaPlugin {
       String responseMessage = "Dark mode is not enabled";
       if(enabled) {
           responseMessage = "Dark mode is enabled";
+      }
+
+      JSONObject obj = createReturnObject(enabled, responseMessage);
+      returnCordovaPluginResult(PluginResult.Status.OK, obj, false);
+    } catch (Exception e) {
+        JSONObject obj = createReturnObject(false, e.getMessage());
+        returnCordovaPluginResult(PluginResult.Status.ERROR, obj, true);
+        return false;
+    }
+    return true;
+  }
+
+  private boolean toggleDarkMode(boolean enabled,CallbackContext callbackContext) {
+    callback = callbackContext;
+    try {
+      if(enabled){
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+      } else {
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+      }
+
+      String responseMessage = "Dark mode is enabled";
+      if(enabled) {
+          responseMessage = "Dark mode is not enabled";
       }
 
       JSONObject obj = createReturnObject(enabled, responseMessage);
